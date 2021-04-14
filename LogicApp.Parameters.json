@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "contentRanges": {
+            "metadata": {
+                "description": "Allowed IP range for triggers."
+            },
+            "value": ""
+        },
+        "logicAppName": {
+            "metadata": {
+                "description": "The name of the Logic App."
+            },
+            "value": ""
+        },
+        "resourceTags": {
+            "metadata": {
+                "description": "Tags to help identify the resources."
+            },
+            "value": ""
+        },
+        "triggerRanges": {
+            "metadata": {
+                "description": "Allowed IP range for access to inputs/outputs data of Logic App run history."
+            },
+            "value": ""
+        }
+    }
+}

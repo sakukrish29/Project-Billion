@@ -1,0 +1,62 @@
+# ------------------------------------------------------------------------------------ #
+# Description:
+#   Template for deploying a Logic App resource.
+#
+# Documentation:
+#
+# ------------------------------------------------------------------------------------ #
+
+parameters:
+- name: connectedServiceName
+  type: string
+
+- name: resourceGroupLocation
+  type: string
+  default: ''
+
+- name: resourceGroupName
+  type: string
+
+- name: subscriptionID
+  type: string
+
+- name: templatePath
+  type: string
+
+steps:
+# Validates that all the template parameters match the template schema.
+- template: ../../common/validation/AA.Parameters/validate-parameters.yml
+  parameters:
+    excludeParameterNames:
+    - resourceTags
+    - ${{ if not(parameters.resourceGroupLocation) }}:
+      - resourceGroupLocation
+    name: lga-exp
+    parameters: '${{ parameters }}'
+    schemaPath: $(Agent.BuildDirectory)/paf/resources/AA.LogicApp/resource-export-template-schema.yml
+
+# Gets the location of the resource group, if it wasn't supplied.
+- ${{ if not(parameters.resourceGroupLocation) }}:
+  - template: ../../common/tasks/AA.ResourceGroupLocation/get-resource-group-location.yml
+    parameters:
+      connectedServiceName: '${{ parameters.connectedServiceName }}'
+      name: lga-exp
+      outputVariable: _resourceGroupLocation
+      resourceGroupName: '${{ parameters.resourceGroupName }}'
+
+# Deploy the resource using the ARM template.
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: 'lga-exp: Deploying Exported Logic App'
+  inputs:
+    ${{ if not(parameters.resourceGroupLocation) }}:
+      location: $(_resourceGroupLocation)
+    ${{ if parameters.resourceGroupLocation }}:
+      location: '${{ parameters.resourceGroupLocation }}'
+    action: Create Or Update Resource Group
+    connectedServiceName: '${{ parameters.connectedServiceName }}'
+    csmFile: '${{ parameters.templatePath }}'
+    deploymentMode: Incremental
+    deploymentScope: Resource Group
+    resourceGroupName: '${{ parameters.resourceGroupName }}'
+    subscriptionName: '${{ parameters.subscriptionID }}'
+    templateLocation: Linked artifact

@@ -1,0 +1,67 @@
+
+trigger: none
+
+pool: DA-PBA
+
+parameters:
+- name: type
+  displayName: Type of test
+  type: string
+  default: devops
+  values:
+  - devops
+  - sndbx
+
+variables:
+- name: System.Debug
+  value: true
+  
+- name: connectedServiceName
+  value: Infrastructure-As-Code-Dev
+
+- name: contentRanges
+  value: 1.1.1.1/32
+  
+- name: logicAppName
+  value: mneu-lga-dev-${{ parameters.type }}$(Build.BuildId)-039
+
+- name: resourceGroupName
+  value: mneu-rg-dev-${{ parameters.type }}daresources-001
+
+- name: subscriptionID
+  value: 775f881f-3b6b-45af-83e9-87e7b9b0bf01
+
+- name: triggerRanges
+  value: 1.1.1.1/32
+
+
+jobs:
+- job: deployment
+  displayName: Executing the template
+  steps:
+  - checkout: self
+    path: paf
+
+  - template: /resources/AA.LogicApp/resource-template.yml@self
+    parameters:
+      connectedServiceName: $(connectedServiceName)
+      logicAppName: $(logicAppName)
+      contentRanges: $(contentRanges)
+      resourceGroupName: $(resourceGroupName)
+      subscriptionID: $(subscriptionID)
+      triggerRanges: $(triggerRanges)
+
+
+- ${{ if or(eq(parameters.type, 'devops'), ne(variables['Build.Reason'], 'Manual')) }}:
+  - job: teardown
+    displayName: Tearing down the template execution
+    condition: always()
+    dependsOn: deployment
+    steps:
+    - template: /common/tools/AA.DeleteResources/delete-azure-resources.yml@self
+      parameters:
+        connectedServiceName: $(connectedServiceName)
+        resources:
+        - name: $(logicAppName)
+          resourceGroupName: $(resourceGroupName)
+          type: Microsoft.KeyVault/vaults

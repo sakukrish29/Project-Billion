@@ -1,0 +1,73 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "parameters": {
+            "type": "object",
+            "defaultValue": {}
+        },
+        "contentRanges": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "definition": {
+            "type": "string",
+            "defaultValue": "[concat('{\"contentVersion\":\"1.0.0.0\",\"parameters\":{},\"actions\":{},\"triggers\":{},\"outputs\":{},\"$schema\":\"', parameters('workflowSchema'), '\"}')]"
+        },
+        "logicAppName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the the Logic App."
+            }
+        },
+        "logicAppState": {
+            "type": "string",
+            "defaultValue": "Enabled"
+        },
+        "resourceTags": {
+            "type": "object",
+            "metadata": {
+                "description": "Tags to help identify the resources."
+            }
+        },
+        "triggerRanges": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workflowSchema": {
+            "type": "string",
+            "defaultValue": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('logicAppName')]",
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "parameters": "[parameters('parameters')]",
+                "definition": "[json(parameters('definition'))]",
+                "state": "[parameters('logicAppState')]",
+                "accessControl": {
+                    "triggers": {
+                        "allowedCallerIpAddresses": [
+                            {
+                                "addressRange": "[parameters('triggerRanges')]"
+                            }
+                        ]
+                    },
+                    "contents": {
+                        "allowedCallerIpAddresses": [
+                            {
+                                "addressRange": "[parameters('contentRanges')]"
+                            }
+                        ]
+                    }
+                }
+            },
+            "tags": "[parameters('resourceTags')]"
+        }
+    ]
+}

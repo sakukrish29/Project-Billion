@@ -1,0 +1,78 @@
+# ------------------------------------------------------------------------------------ #
+# Description:
+#   Tests the deployment of the Logic App export template.
+#
+# Documentation:
+#
+# ------------------------------------------------------------------------------------ #
+
+trigger: none
+
+pool: DA-PBA
+
+parameters:
+- name: type
+  displayName: Type of test
+  type: string
+  default: devops
+  values:
+  - devops
+  - sndbx
+
+variables:
+- name: System.Debug
+  value: true
+  
+- name: connectedServiceName
+  value: Infrastructure-As-Code-Dev
+
+- name: logicAppName
+  value: mneu-lga-${{ parameters.type }}$(Build.BuildId)-038
+
+- name: resourceGroupName
+  value: mneu-rg-dev-${{ parameters.type }}daresources-001
+
+- name: subscriptionID
+  value: 775f881f-3b6b-45af-83e9-87e7b9b0bf01
+
+- name: templatePath
+  value: $(Agent.BuildDirectory)/paf/resources/AA.LogicApp/LogicApp.Export.Template.json
+
+jobs:
+- job: execute
+  displayName: Executing the template
+  steps:
+  - checkout: self
+    path: paf
+
+  - template: /resources/AA.LogicApp/resource-template.yml@self
+    parameters:
+      connectedServiceName: $(connectedServiceName)
+      logicAppName: $(logicAppName)
+      resourceGroupName: $(resourceGroupName)
+      subscriptionID: $(subscriptionID)
+
+- job: tests
+  displayName: Testing the template execution
+  condition: succeeded()
+  dependsOn: setup
+  steps:
+  - template: /resources/AA.LogicApp/tests/test-logic-app.yml
+    parameters:
+      connectedServiceName: $(connectedServiceName)
+      logicAppName: $(logicAppName)
+      resourceGroupName: $(resourceGroupName)
+
+- ${{ if or(eq(parameters.type, 'devops'), ne(variables['Build.Reason'], 'Manual')) }}:
+  - job: teardown
+    displayName: Tearing down the template execution
+    condition: always()
+    dependsOn: tests
+    steps:
+    - template: /common/tools/AA.DeleteResources/delete-azure-resources.yml@self
+      parameters:
+        connectedServiceName: $(connectedServiceName)
+        resources:
+        - name: $(logicAppName)
+          resourceGroupName: $(resourceGroupName)
+          type: Microsoft.KeyVault/vaults

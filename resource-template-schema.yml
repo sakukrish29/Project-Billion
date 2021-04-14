@@ -1,0 +1,38 @@
+"$schema": http://json-schema.org/draft-07/schema#
+type: object
+additionalProperties: false
+required:
+- connectedServiceName
+- logicAppName
+- resourceGroupName
+- resourceTags
+- subnetName
+- subscriptionID
+properties:
+  connectedServiceName:
+    type: string
+  contentRanges:
+    type: string
+  logicAppName:
+    maxLength: 80
+    minLength: 1
+    pattern: '[a-zA-Z0-9-\(\)_\.]+$'
+    type: string
+  resourceGroupLocation:
+    type: string
+  resourceGroupName:
+    maxLength: 90
+    minLength: 1
+    pattern: '^[a-zA-Z0-9-\._()]+$'
+    type: string
+  resourceTags:
+    minLength: 1
+    type: object
+  resourceTagsString:
+    minLength: 1
+    type: string
+  subscriptionID:
+    pattern: '^[a-zA-Z0-9]{8}-([a-zA-Z0-9]{4}-){3}[a-zA-Z0-9]{12}$'
+    type: string
+  triggerRanges:
+    type: string

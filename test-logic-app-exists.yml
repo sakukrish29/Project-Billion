@@ -1,0 +1,37 @@
+# ------------------------------------------------------------------------------------ #
+# Description:
+#   Specifies tests for the Logic App
+#
+# Documentation:
+#
+# ------------------------------------------------------------------------------------ #
+
+parameters:
+- name: connectedServiceName
+  type: string
+
+- name: logicAppName
+  type: object
+
+- name: resourceGroupName
+  type: string
+
+steps:
+- task: AzurePowerShell@5
+  displayName: Testing the KeyVault firewall subnets for '${{ network.subnetName }}'
+  inputs:
+    azurePowerShellVersion: LatestVersion
+    azureSubscription: '${{ parameters.connectedServiceName }}'
+    inline: |
+      # Arrange
+      $logicAppId = Get-AzLogicApp `
+        -Verbose `
+        -Name "${{ network.logicAppName }}" `
+        -ResourceGroupName "${{ parameters.resourceGroupName }}" `
+        | Select-Object -ExpandProperty Id
+
+      # Act / Assert
+      if ($null -eq $logicAppId) {
+        throw "The Logic App is not present"
+      }
+    scriptType: InlineScript

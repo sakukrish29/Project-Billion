@@ -1,0 +1,21 @@
+"$schema": http://json-schema.org/draft-07/schema#
+type: object
+additionalProperties: false
+required:
+- connectedServiceName
+- resourceGroupName
+- subscriptionID
+- templatePath
+properties:
+  connectedServiceName:
+    type: string
+  resourceGroupName:
+    maxLength: 90
+    minLength: 1
+    pattern: '^[a-zA-Z0-9-\._()]+$'
+    type: string
+  subscriptionID:
+    pattern: '^[a-zA-Z0-9]{8}-([a-zA-Z0-9]{4}-){3}[a-zA-Z0-9]{12}$'
+    type: string
+  templatePath:
+    type: string
